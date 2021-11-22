@@ -6,7 +6,7 @@ require (
 	github.com/charmbracelet/bubbles v0.9.0
 	github.com/charmbracelet/bubbletea v0.19.1
 	github.com/charmbracelet/lipgloss v0.4.0
-	github.com/mellena1/mbta-v3-go v0.0.0-20190730163022-d1dc7d8bc82b
+	github.com/sdwalsh/mbta-v3-go v0.0.0-20211122100449-84544524d671
 )
 
 require (
@@ -23,7 +23,6 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sahilm/fuzzy v0.1.0 // indirect
-	github.com/sdwalsh/mbta-v3-go v0.0.0-20211122100449-84544524d671 // indirect
 	golang.org/x/sys v0.0.0-20210816183151-1e6c022a8912 // indirect
 	golang.org/x/term v0.0.0-20210615171337-6886f2dfbf5b // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
