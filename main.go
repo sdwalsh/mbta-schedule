@@ -51,12 +51,11 @@ type model struct {
 	directionList     list.Model
 	timetableList     list.Model
 	step              step
-	loading           bool
+	loading           bool // TODO
 	selectedRoute     selectedRoute
 	selectedStop      string
 	selectedDirection string
-	DepartureTime     string
-	Err               error
+	err               error
 }
 
 // Init is automatically called by BubbleTea. Start off by calling the first fetch (async)
@@ -66,25 +65,25 @@ func (m model) Init() tea.Cmd {
 	}
 }
 
-// incrementStep moves our state forward (TODO make a back function)
-func (m *model) incrementStep() {
-	m.step = m.step + 1
-	m.loading = false
-}
-
 // Update is called to update the Tea model
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/commands/
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case error:
-		m.Err = msg
+		m.err = msg
+	case tea.WindowSizeMsg:
+		top, right, bottom, left := docStyle.GetMargin()
+		m.routeList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
+		m.stopList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
+		m.directionList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
+		m.timetableList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
+
 	// Callback from Route API Request
 	case []*mbta.Route:
 		m.Routes = msg
 		m.routeList.SetItems(processRoutes(msg))
 	// Callback from Stop API Request
 	case []*mbta.Stop:
-		m.incrementStep()
 		m.Stops = msg
 		m.stopList.SetItems(processStops(msg))
 		// Directions are provided by Routes. When we have a selected Route we can populate the direction list
@@ -93,6 +92,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case []*mbta.Prediction:
 		m.Timetable = msg
 		m.timetableList.SetItems(m.processTimetable())
+
 	// Handle user input
 	case tea.KeyMsg:
 		// Don't match any of the keys below if we're actively filtering.
@@ -102,7 +102,6 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.timetableList.FilterState() == list.Filtering {
 			break
 		}
-
 		switch keypress := msg.String(); keypress {
 		// Listen for exit command
 		case "ctrl+c":
@@ -110,13 +109,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// Selecting
 		case "enter":
 			switch m.step {
+			case menuStep:
+				// TODO add main menu
 			case routeStep:
 				i, ok := m.routeList.SelectedItem().(item)
 				sr := selectedRoute{index: i.index, name: i.id}
 				if ok {
 					m.selectedRoute = sr
 				}
-				m.loading = true
+				m.step = stopStep
 				return m, m.fetchStopsCmd()
 			case stopStep:
 				i, ok := m.stopList.SelectedItem().(item)
@@ -137,15 +138,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			return m, nil
 		}
-	case tea.WindowSizeMsg:
-		top, right, bottom, left := docStyle.GetMargin()
-		m.routeList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
-		m.stopList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
-		m.directionList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
-		m.timetableList.SetSize(msg.Width-left-right, msg.Height-top-bottom)
 	}
-
-	// Handle Bubbles
+	// Handle Bubbles: TODO cleanup / look to simplify
 	var cmd tea.Cmd
 	switch m.step {
 	case routeStep:
@@ -161,8 +155,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) View() string {
-	if m.Err != nil {
-		return fmt.Sprintf("\nWe had some trouble: %v\n\n", m.Err)
+	if m.err != nil {
+		return fmt.Sprintf("\nWe had some trouble: %v\n\n", m.err)
 	}
 
 	// Render based on step
