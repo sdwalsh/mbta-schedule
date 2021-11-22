@@ -5,7 +5,6 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/sdwalsh/mbta-v3-go/mbta"
-	"strconv"
 )
 
 // fetchRoutes returns the raw data structure from the mbta package
@@ -74,32 +73,4 @@ func processStops(stops []*mbta.Stop) []list.Item {
 	}
 
 	return stopItems
-}
-
-func (m *model) processDirections() []list.Item {
-	var directionItems []list.Item
-	// TODO brittle code
-	for i, d := range m.Routes[m.selectedRoute.index].DirectionNames {
-		directionItems = append(directionItems, item{index: i, id: strconv.Itoa(i), title: d,
-			desc: m.Routes[m.selectedRoute.index].DirectionDestinations[i]})
-	}
-
-	return directionItems
-}
-
-func (m *model) processTimetable() []list.Item {
-	var timetableItems []list.Item
-	for _, t := range m.Timetable {
-		// DepartureTime can be empty if we're at the end of the line and there are no more stops on the run
-		// we're just going to handle that by dropping them for the time being. Future: Maybe check and notify user?
-		desc := ""
-		if t.Status != nil {
-			desc = *t.Status
-		}
-		if t.DepartureTime != "" {
-			timetableItems = append(timetableItems, item{title: t.DepartureTime, desc: desc})
-		}
-	}
-
-	return timetableItems
 }

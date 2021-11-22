@@ -11,60 +11,6 @@ import (
 
 var docStyle = lipgloss.NewStyle().Margin(1, 2)
 
-// item is the data structure used to display data to the terminal
-type item struct {
-	id    string
-	index int
-	title string
-	desc  string
-}
-
-func (i item) Title() string       { return i.title }
-func (i item) Description() string { return i.desc }
-func (i item) FilterValue() string { return i.title }
-
-// Select Menu -> Route -> Select Stop -> Select Direction -> Display Timetable
-type step int
-
-// TODO We aren't using menu yet, but I would really like to load the user into a neutral space
-const (
-	menuStep step = iota
-	routeStep
-	stopStep
-	directionStep
-	timetableStep
-)
-
-type selectedRoute struct {
-	index int
-	name  string
-}
-
-// model is our application state
-type model struct {
-	Client            mbta.Client
-	Routes            []*mbta.Route
-	Stops             []*mbta.Stop
-	Timetable         []*mbta.Prediction
-	routeList         list.Model
-	stopList          list.Model
-	directionList     list.Model
-	timetableList     list.Model
-	step              step
-	loading           bool // TODO
-	selectedRoute     selectedRoute
-	selectedStop      string
-	selectedDirection string
-	err               error
-}
-
-// Init is automatically called by BubbleTea. Start off by calling the first fetch (async)
-func (m model) Init() tea.Cmd {
-	return func() tea.Msg {
-		return fetchRoutes(m.Client)
-	}
-}
-
 // Update is called to update the Tea model
 // https://github.com/charmbracelet/bubbletea/tree/master/tutorials/commands/
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
